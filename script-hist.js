@@ -8,16 +8,16 @@ var svg = d3.select("svg"),
     // g = groups . needed to "append" things to
     g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-//setting variable for the a-axis (provinces)
+//setting variable for the x-axis (provinces)
 var x = d3.scaleBand()
   //range goes from 0 to the width of the canvas
     .rangeRound([0, width])
     .paddingInner(0.05)
     .align(0.1);
 
-//sets for each inidivual bar for the income group
-var x1 = d3.scaleBand()
-    .padding(0.05);
+  //sets for each individual bar for the income group
+  var x1 = d3.scaleBand()
+      .padding(0.05);
 
 var y = d3.scaleLinear()
     .rangeRound([height, 0]);
@@ -42,6 +42,7 @@ d3.csv("table.csv", function(d, i, columns) {
   x.domain(data.map(function(d) { return d.province; }));
   x1.domain(incomecategory).rangeRound([0, x.bandwidth()]);
   y.domain([0, d3.max(data, function(d) { return d3.max(incomecategory, function(key) { return d[key]; }); })]).nice();
+  z.domain(incomecategory);
 
 //for each data, create a rectangle based on it's numbers
   g.append("g")
@@ -50,11 +51,11 @@ d3.csv("table.csv", function(d, i, columns) {
     .enter().append("g")
       .attr("transform", function(d) { return "translate(" + x(d.province) + ",0)"; })
     .selectAll("rect")
-    .data(function(d) { return incomecategory.map(function(key) { return {key: key, value: d[key]}; }); })
+    .data(function(d) { return incomecategory.map(function(key) { return {key: key, value: d[key]};}); })
     .enter().append("rect")
       .attr("x", function(d) { return x1(d.key); })
       .attr("y", function(d) { return y(d.value); })
-      .attr("width", x1.bandwidth())
+      .attr("width", x1.bandwidth()) //To find the width of the band in a band scale
       .attr("height", function(d) { return height - y(d.value); })
       .attr("fill", function(d) { return z(d.key); });
 

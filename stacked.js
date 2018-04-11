@@ -37,15 +37,20 @@ function(error, data) {
   //slice each element in the array starting at the 2nd element
   var incomecategory = data.columns.slice(4);
   
-///////sorts it from largest to smallest
-  data.sort(function(a, b) { return b.total - a.total; });
-  
+  //sets the range of the x and y scale
   x.domain(data.map(function(d) { return d.province; }));
   y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
   z.domain(incomecategory);
+
+///////function to sort visual from largest to smallest
+  data.sort(function(a, b) { return b.total - a.total; });
   
+
+//for each data, create a rectangle based on it's numbers  
   g.append("g")
     .selectAll("g")
+    //specific to d3 to stack objects
+    //takes the keys which are the incomes and stacks them on top of each other
     .data(d3.stack().keys(incomecategory)(data))
     .enter().append("g")
       .attr("fill", function(d) { return z(d.key); })
@@ -55,7 +60,7 @@ function(error, data) {
       .attr("x", function(d) { return x(d.data.province); })
       .attr("y", function(d) { return y(d[1]); })
       .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-      .attr("width", x.bandwidth());
+      .attr("width", x.bandwidth()); //To find the width of the band in a band scale
   
 //AXIS
 //x-axis
