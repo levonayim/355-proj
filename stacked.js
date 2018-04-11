@@ -29,9 +29,12 @@ d3.csv("table.csv", function(d, i, columns) {
   return d;
 }, 
 
+//if something wrong with dataset, output error
 function(error, data) {
   if (error) throw error;
   
+  // to get each individual label column, 
+  //slice each element in the array starting at the 2nd element
   var incomecategory = data.columns.slice(1);
   
 ///////sorts it from largest to smallest
