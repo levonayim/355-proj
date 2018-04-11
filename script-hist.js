@@ -9,11 +9,13 @@ var svg = d3.select("svg"),
     g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //setting variable for the a-axis (provinces)
-var x0 = d3.scaleBand()
+var x = d3.scaleBand()
   //range goes from 0 to the width of the canvas
     .rangeRound([0, width])
-    .paddingInner(0.1);
+    .paddingInner(0.05)
+    .align(0.1);
 
+//sets for each inidivual bar for the income group
 var x1 = d3.scaleBand()
     .padding(0.05);
 
@@ -29,14 +31,16 @@ d3.csv("table.csv", function(d, i, columns) {
   for (var i = 1, n = columns.length; i < n; ++i) 
     d[columns[i]] = +d[columns[i]];
     return d;
-}, function(error, data) {
-  if (error) throw error;
+    }, 
+    //if something wrong with dataset, output error
+    function(error, data) {
+      if (error) throw error;
 
   //Gets columns of under$10k all the way till $100k
   var incomecategory = data.columns.slice(4);
 
-  x0.domain(data.map(function(d) { return d.province; }));
-  x1.domain(incomecategory).rangeRound([0, x0.bandwidth()]);
+  x.domain(data.map(function(d) { return d.province; }));
+  x1.domain(incomecategory).rangeRound([0, x.bandwidth()]);
   y.domain([0, d3.max(data, function(d) { return d3.max(incomecategory, function(key) { return d[key]; }); })]).nice();
 
 //for each data, create a rectangle based on it's numbers
@@ -44,7 +48,7 @@ d3.csv("table.csv", function(d, i, columns) {
     .selectAll("g")
     .data(data)
     .enter().append("g")
-      .attr("transform", function(d) { return "translate(" + x0(d.province) + ",0)"; })
+      .attr("transform", function(d) { return "translate(" + x(d.province) + ",0)"; })
     .selectAll("rect")
     .data(function(d) { return incomecategory.map(function(key) { return {key: key, value: d[key]}; }); })
     .enter().append("rect")
@@ -59,7 +63,7 @@ d3.csv("table.csv", function(d, i, columns) {
   g.append("g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x0));
+      .call(d3.axisBottom(x));
 
   //y-axis
   g.append("g")
@@ -89,9 +93,9 @@ d3.csv("table.csv", function(d, i, columns) {
 
     //Legend: Colour - for each colour in z array, create a rectangle to hold colour in
       legend.append("rect")
-          .attr("x", width - 19)
-          .attr("width", 19)
-          .attr("height", 19)
+          .attr("x", width - 18)
+          .attr("width", 18)
+          .attr("height", 18)
           .attr("fill", z);
 
     //Legend: Text - after each rectangle, add the column name it is ex. income under $10k

@@ -92,9 +92,9 @@ function(error, data) {
 
     //Legend: Colour - for each colour in z array, create a rectangle to hold colour in
       legend.append("rect")
-          .attr("x", width - 20)
-          .attr("width", 20)
-          .attr("height", 20)
+          .attr("x", width - 18)
+          .attr("width", 18)
+          .attr("height", 18)
           .attr("fill", z);
 
     //Legend: Text - after each rectangle, add the column name it is ex. income under $10k
