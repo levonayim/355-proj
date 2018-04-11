@@ -1,12 +1,12 @@
 //setting up all variables
-// SVG container will be 500 pixels tall by 960 pixels wide
-var svg = d3.select("svg"),
+// histogram container will be 500 pixels tall by 960 pixels wide
+var histogram = d3.select("#histogram"),
     margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = +svg.attr("width") - margin.left - margin.right,
-    height = +svg.attr("height") - margin.top - margin.bottom,
+    width = +histogram.attr("width") - margin.left - margin.right,
+    height = +histogram.attr("height") - margin.top - margin.bottom,
     
     // g = groups . needed to "append" things to
-    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	histogramGroup = histogram.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //setting variable for the a-axis (provinces)
 var x = d3.scaleBand()
@@ -44,7 +44,7 @@ d3.csv("table.csv", function(d, i, columns) {
   y.domain([0, d3.max(data, function(d) { return d3.max(incomecategory, function(key) { return d[key]; }); })]).nice();
 
 //for each data, create a rectangle based on it's numbers
-  g.append("g")
+  histogramGroup.append("g")
     .selectAll("g")
     .data(data)
     .enter().append("g")
@@ -60,13 +60,13 @@ d3.csv("table.csv", function(d, i, columns) {
 
 //AXIS
   //x-axis
-  g.append("g")
+  histogramGroup.append("g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x));
 
   //y-axis
-  g.append("g")
+  histogramGroup.append("g")
       .attr("class", "yaxis")
       .call(d3.axisLeft(y).ticks(null, "s"))
     .append("text")
@@ -80,7 +80,7 @@ d3.csv("table.csv", function(d, i, columns) {
 
 //SECTION TO CREATE LEGEND OF COLOUR
   //general attributes for the legend on text styling
-  var legend = g.append("g")
+  var legend = histogramGroup.append("g")
       .attr("font-size", 10)
       .attr("font-family", "sans-serif")
       .attr("text-anchor", "end")

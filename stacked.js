@@ -1,12 +1,12 @@
 //setting up all variables
-// SVG container will be 500 pixels tall by 960 pixels wide
-var svg = d3.select("svg"),
+// stackedBar container will be 500 pixels tall by 960 pixels wide
+var stackedBar = d3.select("#stacked-bar"),
     margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = +svg.attr("width") - margin.left - margin.right,
-    height = +svg.attr("height") - margin.top - margin.bottom,
+    width = +stackedBar.attr("width") - margin.left - margin.right,
+    height = +stackedBar.attr("height") - margin.top - margin.bottom,
     
     // g = groups . needed to "append" things to
-    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    stackedBarGroup = stackedBar.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //setting variable for the a-axis (provinces)
 var x = d3.scaleBand()
@@ -44,7 +44,7 @@ function(error, data) {
   y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
   z.domain(incomecategory);
   
-  g.append("g")
+  stackedBarGroup.append("g")
     .selectAll("g")
     .data(d3.stack().keys(incomecategory)(data))
     .enter().append("g")
@@ -59,13 +59,13 @@ function(error, data) {
   
 //AXIS
 //x-axis
-  g.append("g")
+  stackedBarGroup.append("g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x));
 
 //y-axis
-  g.append("g")
+  stackedBarGroup.append("g")
       .attr("class", "yaxis")
       .call(d3.axisLeft(y).ticks(null, "s"))
     .append("text")
@@ -79,7 +79,7 @@ function(error, data) {
 
 //SECTION TO CREATE LEGEND OF COLOUR
   //general attributes for the legend on text styling
-  var legend = g.append("g")
+  var legend = stackedBarGroup.append("g")
       .attr("font-size", 10)
       .attr("font-family", "sans-serif")
       .attr("text-anchor", "end")
