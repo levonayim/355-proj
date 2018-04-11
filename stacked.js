@@ -35,7 +35,7 @@ function(error, data) {
   
   // to get each individual label column, 
   //slice each element in the array starting at the 2nd element
-  var incomecategory = data.columns.slice(1);
+  var incomecategory = data.columns.slice(4);
   
 ///////sorts it from largest to smallest
   data.sort(function(a, b) { return b.total - a.total; });
