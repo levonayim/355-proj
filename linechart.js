@@ -1,53 +1,33 @@
 // add jquery data to appended svg elements?
 
-function iGToInt(iG) {
-	if (iG == 'Under $10,000') {
-		return 0;
-	} else if (iG == '$10,000 to $19,999') {
-		return 1;
-	} else if (iG == '$20,000 to $29,999') {
-		return 2;
-	} else if (iG == '$30,000 to $39,999') {
-		return 3;
-	} else if (iG == '$40,000 to $49,999') {
-		return 4;
-	} else if (iG == '$50,000 to $59,999') {
-		return 5;
-	} else if (iG == '$60,000 to $69,999') {
-		return 6;
-	} else if (iG == '$70,000 to $79,999') {
-		return 7;
-	} else if (iG == '$80,000 to $89,999') {
-		return 8;
-	} else if (iG == '$90,000 to $99,999') {
-		return 9;
-	} else if (iG == '$100,000 and over') {
-		return 10;
-	}   
+var income = [
+	'Under $10,000',
+	'$10,000 to $19,999',
+	'$20,000 to $29,999',
+	'$30,000 to $39,999',
+	'$40,000 to $49,999',
+	'$50,000 to $59,999',
+	'$60,000 to $69,999',
+	'$70,000 to $79,999',
+	'$80,000 to $89,999',
+	'$90,000 to $99,999',
+	'$100,000 and over',
+];
+
+var house = [
+	'One person household',
+	'Two-or-more person non-census-family household',
+	'One couple census family with other persons in the household',
+	'One couple census family without other persons in the household',
+	'One-census-family households with additional persons',
+	'One-census-family households without additional persons',
+	'One lone-parent census family with other persons in the household',
+	'One lone-parent census family without other persons in the household',
+];
+
+function nominalOrder(group, input) {
+	return group.indexOf(input);
 }
-
-function houseToInt(family) {
-	if (iG == 'One person household') {
-		return 0;
-	} else if (iG == 'Two-or-more person non-census-family household') {
-		return 1;
-	} else if (iG == 'One couple census family with other persons in the household') {
-		return 2;
-	} else if (iG == 'One couple census family without other persons in the household') {
-		return 3;
-	} else if (iG == 'One-census-family households with additional persons') {
-		return 4;
-	} else if (iG == 'One-census-family households without additional persons') {
-		return 5;
-	} else if (iG == 'One lone-parent census family with other persons in the household') {
-		return 6;
-	} else if (iG == 'One lone-parent census family without other persons in the household') {
-		return 7;
-	}
-}
-
-
-
 
 // SETTINGS
 var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
@@ -55,7 +35,6 @@ var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', '
 var selection = ['CAN'];
 
 // if scale is larger than selections, only use selected items for that bin
-
 
 // BOUNDS
 var margin = {top: 30, right: 50, bottom: 50, left: 70},
@@ -103,17 +82,23 @@ var rankChart = d3.select('#area3')
 // Add the X Axis
 lineChart.append('g')
 	.attr('class', 'xAxis')
-	.attr('transform', 'translate(0,' + outerHeight + ')')
-	.call(xAxis);
+	.attr('transform', 'translate(0,' + innerHeight + ')')
+	.call(d3.axisBottom(d3.scalePoint().domain(income).range([0, innerWidth])))
+	.selectAll("text")
+    .attr("y", 0)
+    .attr("x", 9)
+    .attr("dy", ".35em")
+    .attr("transform", "rotate(90)")
+    .style("text-anchor", "start");
 
 stackChart.append('g')
 	.attr('class', 'xAxis')
-	.attr('transform', 'translate(0,' + outerHeight + ')')
+	.attr('transform', 'translate(0,' + innerHeight + ')')
 	.call(xAxis);
 
 rankChart.append('g')
 	.attr('class', 'xAxis')
-	.attr('transform', 'translate(0,' + outerHeight + ')')
+	.attr('transform', 'translate(0,' + innerHeight + ')')
 	.call(xAxis);
 
 // Add the Y Axis
@@ -136,7 +121,7 @@ d3.csv('dataset.csv', function(error, data) {
 		d.country = d.country;
 		d.province = d.province;
 		d.name = d.name;
-		d.incomeGroup = d.incomeGroup;
+		d.income = d.income;
 		d.houseType = d.houseType;
 		d.costIncomeRatio = d.costIncomeRatio;
 		// converts to number or 0
@@ -148,10 +133,10 @@ d3.csv('dataset.csv', function(error, data) {
 	function createSelection(column, selection) {
 		// MAKE NESTED DATA
 		var dataNest = d3
-			// nest by name, then incomeGroup
+			// nest by name, then income
 			.nest()
 			.key(function(d) { return d[column]; })
-			.key(function(d) { return d.incomeGroup; })
+			.key(function(d) { return d.income; })
 			// for each subgroup
 			.rollup(function(d) {
 				// return a set of calculated values
@@ -196,10 +181,10 @@ d3.csv('dataset.csv', function(error, data) {
 			return d3.descending(x.total, y.total);
 		});
 
-		// sort incomeGroups (so line draws in right order)
+		// sort incomes (so line draws in right order)
 		dataNest.forEach(function(d) {
 			d.values.sort(function(x, y) {
-				return d3.ascending(iGToInt(x.key), iGToInt(y.key));
+				return d3.ascending(nominalOrder(income, x.key), nominalOrder(income, y.key));
 			});
 		});	
 
@@ -207,44 +192,35 @@ d3.csv('dataset.csv', function(error, data) {
 	}
 
 	var dataNest = createSelection(scale, selection);
-
-	// find all total
 	var allTotal = 0;
 	dataNest.forEach(function(d) {
 		allTotal += d.total;
 	});
 
-	console.log(dataNest);
 
 	var houseDataNest = createSelection('houseType', selection);
-
-
-	// find all total
 	var houseAllTotal = 0;
 	houseDataNest.forEach(function(d) {
 		houseAllTotal += d.total;
 	});
 
-	console.log(houseDataNest);
-
-
 	// LINE CHART
 	// scale
-	// x, incomeGroup index, min to max
+	// x, income index, min to max
 	xScale.domain([
 		// min of
 		d3.min(dataNest, function(d) { 
-			// min of incomeGroup index
+			// min of income index
 			var n = d3.min(d.values, function(d) {
-				return iGToInt(d.key);
+				return nominalOrder(income, d.key);
 			});
 			return n; 
 		}),
 		// to max of
 		d3.max(dataNest, function(d) { 
-			// max of incomeGroup index
+			// max of income index
 			var n = d3.max(d.values, function(d) {
-				return iGToInt(d.key);
+				return nominalOrder(income, d.key);
 			});
 			return n; 
 		})
@@ -253,7 +229,7 @@ d3.csv('dataset.csv', function(error, data) {
 	yScale.domain([0, 
 		// max of
 		d3.max(dataNest, function(d) { 
-			// max of incomeGroup ratio
+			// max of income ratio
 			var n = d3.max(d.values, function(d) {
 				return d.value.ratio;
 			});
@@ -263,8 +239,8 @@ d3.csv('dataset.csv', function(error, data) {
 
 	// define line
 	var line = d3.line() 
-		.x(function(d) { return xScale(iGToInt(d.key)); })
-		.y(function(d) { return yScale(d.value.ratio); })
+		.x(function(d) { return xScale(nominalOrder(income, d.key)); })
+		.y(function(d) { return yScaleFlip(d.value.ratio); })
 		.curve(d3.curveMonotoneX);
 
 	// apply
@@ -278,6 +254,8 @@ d3.csv('dataset.csv', function(error, data) {
 			// d='val, val, val'
 			.attr('d', line(d.values));
 	});
+
+
 
 	// STACK CHART
 	xScale.domain([0, houseAllTotal]);
@@ -303,23 +281,13 @@ d3.csv('dataset.csv', function(error, data) {
 				.attr('y', yScaleFlip(yOffset))
 				.attr('width', xScale(d.total))
 				.attr('height', yScale(totalRatio))
-				.style('fill', function() { return colorScale(iGToInt(e.key)) });
+				.style('fill', function() { return colorScale(nominalOrder(income, e.key)) });
 		});
 		// increment xOffset after (because of rect's left x-origin)
 		xOffset += d.total;
 	});
 
 	// RANK CHART
-
-var tip = d3.tip()
-  .attr('class', 'd3-tip')
-  .offset([-10, 0])
-  .html(function(d) {
-    return 'tip';
-  });
-
-
-
 	xScale.domain([0, allTotal]);
 	yScale.domain([0, 1]);
 	yScaleFlip.domain([0, 1]);
@@ -342,16 +310,14 @@ var tip = d3.tip()
 				.attr('y', yScaleFlip(yOffset))
 				.attr('width', xScale(d.total))
 				.attr('height', yScale(totalRatio))
-				.style('fill', function() { return colorScale(iGToInt(e.key)) })
+				.style('fill', function() { return colorScale(nominalOrder(income, e.key)) })
 				.attr('class', 'segment')
-				.on('mouseover', tip.show)
-				.on('mouseout', tip.hide)
+				// .on('mouseover', tip.show)
+				// .on('mouseout', tip.hide);
 		});
 		// increment xOffset after (because of rect's left x-origin)
 		xOffset += d.total;
 	});
-
-	rankChart.call(tip);
 
 	// OTHER
 
