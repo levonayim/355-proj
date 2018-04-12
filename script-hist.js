@@ -8,13 +8,13 @@ var histogram = d3.select("#histogram"),
     // g = groups . needed to "append" things to
 	histogramGroup = histogram.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var stackedBar = d3.select("#stacked-bar"),
+var stacked = d3.select("#stacked-bar"),
 	margin = {top: 20, right: 20, bottom: 30, left: 40},
-	width = +stackedBar.attr("width") - margin.left - margin.right,
-	height = +stackedBar.attr("height") - margin.top - margin.bottom,
+	width = +stacked.attr("width") - margin.left - margin.right,
+	height = +stacked.attr("height") - margin.top - margin.bottom,
 
 	// g = groups . needed to "append" things to
-	stackedBarGroup = stackedBar.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	stackedGroup = stacked.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //setting variable for the a-axis (provinces)
 var x = d3.scaleBand()
@@ -38,20 +38,21 @@ var z = d3.scaleOrdinal()
 d3.csv("table.csv",
 	function(d, i, columns) {
 		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. +d[columns[i]] converts it to workable integer
-		for (var i = 4, n = columns.length; i < n; ++i)
+		for (var i = 4, n = columns.length; i < n; ++i) {
 			d[columns[i]] = +d[columns[i]];
+		}
 			return d;
 	}, 
     //if something wrong with dataset, output error
     function(error, data) {
 		if (error) { throw error; }
 
-		//Gets columns of under$10k all the way till $100k
-		var incomecategory = data.columns.slice(4);
+		// gets array of columns from under$10k to $100k+
+		var incomeCategory = data.columns.slice(4);
 
 		x.domain(data.map(function(d) { return d.province; }));
-		x1.domain(incomecategory).rangeRound([0, x.bandwidth()]);
-		y.domain([0, d3.max(data, function(d) { return d3.max(incomecategory, function(key) { return d[key]; }); })]).nice();
+		x1.domain(incomeCategory).rangeRound([0, x.bandwidth()]);
+		y.domain([0, d3.max(data, function(d) { return d3.max(incomeCategory, function(key) { return d[key]; }); })]).nice();
 
 		//for each data, create a rectangle based on it's numbers
 		histogramGroup.append("g")
@@ -61,7 +62,7 @@ d3.csv("table.csv",
 			.append("g")
 				.attr("transform", function(d) { return "translate(" + x(d.province) + ",0)"; })
 				.selectAll("rect")
-				.data(function(d) { return incomecategory.map(function(key) { return {key: key, value: d[key]}; }); })
+				.data(function(d) { return incomeCategory.map(function(key) { return {key: key, value: d[key]}; }); })
 				.enter()
 				.append("rect")
 					.attr("x", function(d) { return x1(d.key); })
@@ -99,7 +100,7 @@ d3.csv("table.csv",
 			// to get each individual label column, slice each element in the array 
 			// then to show it from highest to lowest, reverse it with the reverse function  
 			.selectAll("g")
-			.data(incomecategory.slice().reverse())
+			.data(incomeCategory.slice().reverse())
 			.enter()
 			.append("g")
 				.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
@@ -128,6 +129,7 @@ d3.csv("table.csv",
 		for (i = 4, t = 0; i < columns.length; ++i)
 			t += d[columns[i]] = +d[columns[i]];
 			d.total = t;
+		}
 			return d;	
 	},
 
@@ -138,19 +140,19 @@ d3.csv("table.csv",
 
 		// to get each individual label column, 
 		//slice each element in the array starting at the 2nd element
-		var incomecategory = data.columns.slice(4);
+		var incomeCategory = data.columns.slice(4);
 
 		//sorts it from largest to smallest
 		data.sort(function(a, b) { return b.total - a.total; });
 
 		x.domain(data.map(function(d) { return d.province; }));
 		y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
-		z.domain(incomecategory);
-
+		z.domain(incomeCategory);
+ 
 		//for each data, create a rectangle based on it's numbers
-		stackedBarGroup.append("g")
+		stackedGroup.append("g")
 			.selectAll("g")
-			.data(d3.stack().keys(incomecategory)(data))
+			.data(d3.stack().keys(incomeCategory)(data))
 			.enter()
 			.append("g")
 				.attr("fill", function(d) { return z(d.key); })
@@ -165,13 +167,13 @@ d3.csv("table.csv",
 
 		//AXIS
 		//x-axis
-		stackedBarGroup.append("g")
+		stackedGroup.append("g")
 			.attr("class", "axis")
 			.attr("transform", "translate(0," + height + ")")
 			.call(d3.axisBottom(x));
 
 		//y-axis
-		stackedBarGroup.append("g")
+		stackedGroup.append("g")
 		.attr("class", "yaxis")
 		.call(d3.axisLeft(y).ticks(null, "s"))
 		.append("text")
@@ -185,27 +187,27 @@ d3.csv("table.csv",
 
 		//SECTION TO CREATE LEGEND OF COLOUR
 		//general attributes for the legend on text styling
-		var stackedBarLegend = stackedBarGroup.append("g")
+		var stackedLegend = stackedGroup.append("g")
 			.attr("font-size", 10)
 			.attr("font-family", "sans-serif")
 			.attr("text-anchor", "end")
 			// to get each individual label column, slice each element in the array 
 			// then to show it from highest to lowest, reverse it with the reverse function  
 			.selectAll("g")
-			.data(incomecategory.slice().reverse())
+			.data(incomeCategory.slice().reverse())
 			.enter()
 			.append("g")
 				.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
 		//Legend: Colour - for each colour in z array, create a rectangle to hold colour in
-		stackedBarLegend.append("rect")
+		stackedLegend.append("rect")
 			.attr("x", width - 18)
 			.attr("width", 18)
 			.attr("height", 18)
 			.attr("fill", z);
 
 		//Legend: Text - after each rectangle, add the column name it is ex. income under $10k
-		stackedBarLegend.append("text")
+		stackedLegend.append("text")
 			.attr("x", width - 24)
 			.attr("y", 9.5)
 			.attr("dy", "0.32em")
