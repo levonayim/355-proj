@@ -37,9 +37,7 @@ function(error, data) {
   //slice each element in the array starting at the 2nd element
   var incomecategory = data.columns.slice(4);
   
-		//sorts it from largest to smallest
-		data.sort(function(a, b) { return b.total - a.total; });
-
+  //sets the range of the x and y scale
   x.domain(data.map(function(d) { return d.province; }));
   y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
   z.domain(incomecategory);
