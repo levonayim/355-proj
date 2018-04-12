@@ -25,8 +25,9 @@ function iGToInt(iG) {
 }
 
 // SETTINGS
-var mode = 'name'; // 'province', or 'name'
-var scale = '' // 'national', 'provincial', 'municipal'
+var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
+
+var selection = ['CAN'];
 
 // if scale is larger than selections, only use selected items for that bin
 
@@ -40,13 +41,18 @@ var margin = {top: 30, right: 50, bottom: 50, left: 70},
 
 // SCALE
 var xScale = d3.scaleLinear().range([0, innerWidth]);
-var yScale = d3.scaleLinear().range([innerHeight, 0]);
+var yScale = d3.scaleLinear().range([0, innerHeight]);
+
+
 
 // AXIS
 var xAxis = d3.axisBottom(xScale).ticks(5);
 var yAxis = d3.axisLeft(yScale).ticks(5);
 
 var color = d3.scaleOrdinal(d3.schemeCategory20);   // set the colour scale
+var colorScale = d3.scaleSequential(d3.interpolateRainbow)
+    .domain([0, 10]);
+
 
 // ADD CHART (cannot be named svg or else would over lap it)
 var lineChart = d3.select('#area1')
@@ -76,15 +82,35 @@ lineChart.append('g')
 	.attr('transform', 'translate(0,' + outerHeight + ')')
 	.call(xAxis);
 
+stackChart.append('g')
+	.attr('class', 'xAxis')
+	.attr('transform', 'translate(0,' + outerHeight + ')')
+	.call(xAxis);
+
+rankChart.append('g')
+	.attr('class', 'xAxis')
+	.attr('transform', 'translate(0,' + outerHeight + ')')
+	.call(xAxis);
+
 // Add the Y Axis
 lineChart.append('g')
 	.attr('class', 'yAxis')
 	.call(yAxis);
 
+stackChart.append('g')
+	.attr('class', 'yAxis')
+	.call(yAxis);
+
+rankChart.append('g')
+	.attr('class', 'yAxis')
+	.call(yAxis);
+
 // DATA
 d3.csv('dataset.csv', function(error, data) {
+	// CONVERT
 	data.forEach(function(d) {
-		// CONVERT
+		d.country = d.country;
+		d.province = d.province;
 		d.name = d.name;
 		d.incomeGroup = d.incomeGroup;
 		d.houseType = d.houseType;
@@ -99,7 +125,7 @@ d3.csv('dataset.csv', function(error, data) {
 	var dataNest = d3
 		// nest by name, then incomeGroup
 		.nest()
-		.key(function(d) { return d[mode]; })
+		.key(function(d) { return d[scale]; })
 		.key(function(d) { return d.incomeGroup; })
 		// for each subgroup
 		.rollup(function(d) {
@@ -116,28 +142,51 @@ d3.csv('dataset.csv', function(error, data) {
 					return 0;
 				}
 			});
-			var ratio = under30 / total;
-			var percent = ratio * 100;
+			var ratio = total !== 0 ? (under30 / total) : 0;
 
 			// as an object
 			return {
 				'total': total,
 				'under30': under30,
 				'ratio': ratio,
-				'percent': percent,
 			};
 		})
 		// supply dataset
 		.entries(data);
+
 	
+	// create same variables for first level
+	dataNest.forEach(function(d) {
+		d['total'] = 0;
+		d['under30'] = 0;
+		d.values.forEach(function(e) {
+			d.total += e.value.total;
+			d.under30 += e.value.under30;
+		});
+		d['ratio'] = d.total !== 0 ? (d.under30 / d.total) : 0;
+	});
+
+	// sort first level from high population to low
+	dataNest.sort(function(x, y) {
+		return d3.descending(x.total, y.total);
+	});
+
 	// sort incomeGroups (so line draws in right order)
 	dataNest.forEach(function(d) {
 		d.values.sort(function(x, y) {
 			return d3.ascending(iGToInt(x.key), iGToInt(y.key));
 		});
+	});	
+
+	// find all total
+	var allTotal = 0;
+	dataNest.forEach(function(d) {
+		allTotal += d.total;
 	});
 
-	// SCALE
+
+	// line chart
+	// scale
 	// x, incomeGroup index, min to max
 	xScale.domain([
 		// min of
@@ -161,9 +210,9 @@ d3.csv('dataset.csv', function(error, data) {
 	yScale.domain([0, 
 		// max of
 		d3.max(dataNest, function(d) { 
-			// max of incomeGroup percent
+			// max of incomeGroup ratio
 			var n = d3.max(d.values, function(d) {
-				return d.value.percent;
+				return d.value.ratio;
 			});
 			return n; 
 		})
@@ -172,20 +221,53 @@ d3.csv('dataset.csv', function(error, data) {
 	// define line
 	var line = d3.line() 
 		.x(function(d) { return xScale(iGToInt(d.key)); })
-		.y(function(d) { return yScale(d.value.percent); })
+		.y(function(d) { return yScale(d.value.ratio); })
 		.curve(d3.curveMonotoneX);
 
-	// for each entry
-	dataNest.forEach(function(d,i) { 
+	// apply
+	dataNest.forEach(function(d, i) { 
 		// append an svg <path>
 		lineChart.append('path')
 			// class='line'
 			.attr('class', 'line')
 			// ??? add colors dynamically
-			.style('stroke', function() { return d.color = color(d.key); })
+			.style('stroke', function() { return d.color = color(d.total); })
 			// d='val, val, val'
 			.attr('d', line(d.values));
 	});
+
+	// stackChart.append(
+
+	// rank chart
+	xScale.domain([0, allTotal]);
+
+	var incomeGroupOffset = 0;
+	dataNest.forEach(function(d, i) { 
+		var incomeGroupTotal = 0;
+		d.values.forEach(function (d, i) {
+			incomeGroupTotal += d.value.total;
+		});
+
+		var offset = 0;
+		d.values.forEach(function (d, j) {
+			totalRatio = d.value.under30 / incomeGroupTotal;
+			
+
+			rankChart.append('rect')
+				.attr('class', 'segment')
+				.attr('x', xScale(incomeGroupOffset))
+				.attr('y', offset)
+				.attr('width', xScale(incomeGroupTotal))
+				.attr('height', yScale(totalRatio))
+				.style('fill', function() { return colorScale(iGToInt(d.key)) });
+
+			offset += yScale(totalRatio);
+			//console.log(offset);
+		});
+		incomeGroupOffset += incomeGroupTotal;
+	});
+
+	// OTHER
 
 	//HOVER OVER LINE. SHOW INFO. At the moment shows the 'highest' point of all the points for that city.. need to figure out how to show just the points.
 	lineChart.selectAll('path')
