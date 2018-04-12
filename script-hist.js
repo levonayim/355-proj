@@ -1,20 +1,12 @@
 //setting up all variables
-// histogram container will be 500 pixels tall by 960 pixels wide
-var histogram = d3.select("#histogram"),
+// SVG container will be 500 pixels tall by 960 pixels wide
+var svg = d3.select("svg"),
     margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = +histogram.attr("width") - margin.left - margin.right,
-    height = +histogram.attr("height") - margin.top - margin.bottom,
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom,
     
     // g = groups . needed to "append" things to
-	histogramGroup = histogram.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-var stackedBar = d3.select("#stacked-bar"),
-	margin = {top: 20, right: 20, bottom: 30, left: 40},
-	width = +stackedBar.attr("width") - margin.left - margin.right,
-	height = +stackedBar.attr("height") - margin.top - margin.bottom,
-
-	// g = groups . needed to "append" things to
-	stackedBarGroup = stackedBar.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 //setting variable for the x-axis (provinces)
 var x = d3.scaleBand()
@@ -35,16 +27,13 @@ var z = d3.scaleOrdinal()
     .range(["#76AAE4", "#B2DCD3", "#E4E5C6", "#36A9F2", "#0046F9", "#9241FC", "#B393F3", "#D41B86", "#F853E6", "#F47465", "#C92629"]);
 
 //IMPORTING DATA
-d3.csv("table.csv",
-	function(d, i, columns) {
-		// Thomas - I have no idea how this for loop works
-		for (var i = 1, n = columns.length; i < n; ++i)
-			d[columns[i]] = +d[columns[i]];
-			return d;
-	}, 
+d3.csv("table.csv", function(d, i, columns) {
+  for (var i = 1, n = columns.length; i < n; ++i) 
+    d[columns[i]] = +d[columns[i]];
+    return d;
+    }, 
     //if something wrong with dataset, output error
     function(error, data) {
-<<<<<<< HEAD
       if (error) throw error;
 
   //Gets columns of under$10k all the way till $100k
@@ -116,170 +105,4 @@ d3.csv("table.csv",
           .attr("y", 9.5)
           .attr("dy", "0.32em")
           .text(function(d) { return d; });
-=======
-		if (error) { throw error; }
-
-		//Gets columns of under$10k all the way till $100k
-		var incomecategory = data.columns.slice(4);
-
-		x.domain(data.map(function(d) { return d.province; }));
-		x1.domain(incomecategory).rangeRound([0, x.bandwidth()]);
-		y.domain([0, d3.max(data, function(d) { return d3.max(incomecategory, function(key) { return d[key]; }); })]).nice();
-
-		//for each data, create a rectangle based on it's numbers
-		histogramGroup.append("g")
-			.selectAll("g")
-			.data(data)
-			.enter()
-			.append("g")
-				.attr("transform", function(d) { return "translate(" + x(d.province) + ",0)"; })
-				.selectAll("rect")
-				.data(function(d) { return incomecategory.map(function(key) { return {key: key, value: d[key]}; }); })
-				.enter()
-				.append("rect")
-					.attr("x", function(d) { return x1(d.key); })
-					.attr("y", function(d) { return y(d.value); })
-					.attr("width", x1.bandwidth())
-					.attr("height", function(d) { return height - y(d.value); })
-					.attr("fill", function(d) { return z(d.key); });
-
-		//AXIS
-		//x-axis
-		histogramGroup.append("g")
-			.attr("class", "axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(d3.axisBottom(x));
-
-		//y-axis
-		histogramGroup.append("g")
-			.attr("class", "yaxis")
-			.call(d3.axisLeft(y).ticks(null, "s"))
-			.append("text")
-				.attr("x", 2)
-				.attr("y", y(y.ticks().pop()) + 0.5)
-				.attr("dy", "0.32em")
-				.attr("fill", "black")
-				.attr("font-weight", "bold")
-				.attr("text-anchor", "start")
-				.text("Population");
-
-		//SECTION TO CREATE LEGEND OF COLOUR
-		//general attributes for the legend on text styling
-		var histogramLegend = histogramGroup.append("g")
-			.attr("font-size", 10)
-			.attr("font-family", "sans-serif")
-			.attr("text-anchor", "end")
-			// to get each individual label column, slice each element in the array 
-			// then to show it from highest to lowest, reverse it with the reverse function  
-			.selectAll("g")
-			.data(incomecategory.slice().reverse())
-			.enter()
-			.append("g")
-				.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-		//Legend: Colour - for each colour in z array, create a rectangle to hold colour in
-		histogramLegend.append("rect")
-			.attr("x", width - 18)
-			.attr("width", 18)
-			.attr("height", 18)
-			.attr("fill", z);
-
-		//Legend: Text - after each rectangle, add the column name it is ex. income under $10k
-		histogramLegend.append("text")
-			.attr("x", width - 24)
-			.attr("y", 9.5)
-			.attr("dy", "0.32em")
-			.text(function(d) { return d; });
-});
-
-
-
-d3.csv("table.csv",
-	function(d, i, columns) {
-		// Thomas - I have no idea how this for loop works
-		for (i = 4, t = 0; i < columns.length; ++i)
-			t += d[columns[i]] = +d[columns[i]];
-			d.total = t;
-			return d;	
-	},
-
-	
-	function(error, data) {
-		//if something wrong with dataset, output error
-  		if (error) { throw error; }
-
-		// to get each individual label column, 
-		//slice each element in the array starting at the 2nd element
-		var incomecategory = data.columns.slice(4);
-
-		//sorts it from largest to smallest
-		data.sort(function(a, b) { return b.total - a.total; });
-
-		x.domain(data.map(function(d) { return d.province; }));
-		y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
-		z.domain(incomecategory);
-
-		stackedBarGroup.append("g")
-			.selectAll("g")
-			.data(d3.stack().keys(incomecategory)(data))
-			.enter()
-			.append("g")
-				.attr("fill", function(d) { return z(d.key); })
-				.selectAll("rect")
-				.data(function(d) { return d; })
-				.enter()
-					.append("rect")
-					.attr("x", function(d) { return x(d.data.province); })
-					.attr("y", function(d) { return y(d[1]); })
-					.attr("height", function(d) { return y(d[0]) - y(d[1]); })
-					.attr("width", x.bandwidth());
-
-		//AXIS
-		//x-axis
-		stackedBarGroup.append("g")
-			.attr("class", "axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(d3.axisBottom(x));
-
-		//y-axis
-		stackedBarGroup.append("g")
-		.attr("class", "yaxis")
-		.call(d3.axisLeft(y).ticks(null, "s"))
-		.append("text")
-			.attr("x", 2)
-			.attr("y", y(y.ticks().pop()) + 0.5)
-			.attr("dy", "0.32em")
-			.attr("fill", "black")
-			.attr("font-weight", "bold")
-			.attr("text-anchor", "start")
-			.text("Population");
-
-		//SECTION TO CREATE LEGEND OF COLOUR
-		//general attributes for the legend on text styling
-		var stackedBarLegend = stackedBarGroup.append("g")
-			.attr("font-size", 10)
-			.attr("font-family", "sans-serif")
-			.attr("text-anchor", "end")
-			// to get each individual label column, slice each element in the array 
-			// then to show it from highest to lowest, reverse it with the reverse function  
-			.selectAll("g")
-			.data(incomecategory.slice().reverse())
-			.enter()
-			.append("g")
-				.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-		//Legend: Colour - for each colour in z array, create a rectangle to hold colour in
-		stackedBarLegend.append("rect")
-			.attr("x", width - 18)
-			.attr("width", 18)
-			.attr("height", 18)
-			.attr("fill", z);
-
-		//Legend: Text - after each rectangle, add the column name it is ex. income under $10k
-		stackedBarLegend.append("text")
-			.attr("x", width - 24)
-			.attr("y", 9.5)
-			.attr("dy", "0.32em")
-			.text(function(d) { return d; });
->>>>>>> origin/Thomas'_Working_Branch
 });
