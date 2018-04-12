@@ -44,7 +44,7 @@ $(document).on('click', '#municipal', function() {
 });
 
 
-var scale = 'province' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
+var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
 
 var selection = ['CAN'];
 
