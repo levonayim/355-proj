@@ -7,25 +7,34 @@
 		<link href="style.css" rel="stylesheet" type="text/css" >
 	</head>
 	<body>
-		<button id='national'>National</button>
-		<button id='provincial'>Provincial</button>
-		<button id='municipal'>Municipal</button>
+		<h1>Housing Affordability in Canada</h1>
+		<h3>Datasets collected from 2016 Canadian Census</h3>
 
-		<div id="area1">
-		<div id="area2">
-		<div id="area3">
-		<div id="legendArea">
-		<!-- <svg id='histogram' width="600" height="500"></svg> -->
-		<!-- <svg id='stacked-bar' width='600' height='500'></svg> -->
+		<div id='charts'>
+			<h2></h2>
+			<div id="area1">
+			<h2></h2>
+			<div id="area3">
+			<h2></h2>
+			<div id="area2">
+		</div>
+	
+		<div id='side'>
+			<div id='control'>
+				<h3>Scale</h3>
+				<button id='national'>National</button>
+				<button id='provincial'>Provincial</button>
+				<button id='municipal'>Municipal</button>
+			</div>
+			<h3>Income Groups</h3>
+			<div id="legendArea">
+		</div>
 
 		<script src="jquery-3.3.1.min.js"></script>
-
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<script src="//d3js.org/d3-scale-chromatic.v0.3.min.js"></script>
 		<script src="d3-tip.js"></script>
-
-		<!-- <script src="script-hist.js"></script> -->
-		<script src="linechart.js"></script>
+		<script src="linechart.js" onload='load()'></script>
 	</body>
 </html>
 

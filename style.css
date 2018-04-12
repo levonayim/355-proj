@@ -39,17 +39,30 @@ svg {
 }
 
 #area1 {
-	display: inline-block;
+	display: block;
 /*	float: right;*/
 }
 
 #area2 {
-	display: inline-block;
+	display: block;
 /*	float: left;*/
 }
 #area3 {
-	display: inline-block;
+	display: block;
 /*	float: left;*/
+}
+
+#side {
+	position: fixed;
+	width: 25vw;
+	top: 25vh;
+	right: 0;
+}
+
+#side button {
+	display: block;
+	padding: 15px;
+	width: 100%;
 }
 
 path {
