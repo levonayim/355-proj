@@ -6,26 +6,40 @@
 }
 
 
+
+
 body {
-	background-color: #fff;
+	max-width: 1600px;
+    margin: auto;
+
 	font-family: "adelle-1","adelle-2", constantia, cambria, Georgia, serif;
 	font-size:9px;
-	margin: 18px 0 0 30px;
+
+	--gutter: 25px;
+
+	padding: var(--gutter);
 }
 
 h1 {
-	font-size: 24px;
+	font-size: 40px;
 	margin: 0;
-	color: #5387bd;
+	color: #6E40AA;
 	font-weight: normal;
 }
 
 h2 {
-	font-weight: normal;
+	font-weight: bold;
+	font-size: 20px;
 	color: #808080;
 }
 
+h3 {
+	font-weight: normal;
+	font-size: 18px;
+}
+
 p {
+	font-size: 15px;
 	color: #808080;
 }
 
@@ -38,31 +52,42 @@ svg {
 	line-height: 150%;
 }
 
-#area1 {
-	display: block;
-/*	float: right;*/
+#charts {
+	width: 75%;
 }
 
-#area2 {
-	display: block;
-/*	float: left;*/
-}
+#area1,
+#area2,
 #area3 {
 	display: block;
-/*	float: left;*/
+	
 }
 
 #side {
 	position: fixed;
-	width: 25vw;
-	top: 25vh;
-	right: 0;
+	width: calc(25% - 2*var(--gutter));
+	right: var(--gutter);
 }
 
 #side button {
 	display: block;
 	padding: 15px;
+	margin-bottom: 10px;
 	width: 100%;
+
+	border: none;
+}
+
+#national {
+	background-color: #6E40AA;
+}
+
+#provincial {
+	background-color: #1DDFA3;
+}
+
+#municipal {
+	background-color: #FF7847;
 }
 
 path {

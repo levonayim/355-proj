@@ -9,16 +9,9 @@
 	<body>
 		<h1>Housing Affordability in Canada</h1>
 		<h3>Datasets collected from 2016 Canadian Census</h3>
+		<p id='names'>Levona Yim  -  Thomas laurie</p>
+		<hr>
 
-		<div id='charts'>
-			<h2></h2>
-			<div id="area1">
-			<h2></h2>
-			<div id="area3">
-			<h2></h2>
-			<div id="area2">
-		</div>
-	
 		<div id='side'>
 			<div id='control'>
 				<h3>Scale</h3>
@@ -26,10 +19,26 @@
 				<button id='provincial'>Provincial</button>
 				<button id='municipal'>Municipal</button>
 			</div>
+			<hr>
 			<h3>Income Groups</h3>
-			<div id="legendArea">
+			<div id="legendArea"></div>
 		</div>
 
+		<div id='charts'>
+			<h2>Population Spending Under 30% of their Income on Housing</h2>
+			<p>Percent  /  Income Group</p>
+			<div id="area1"></div>
+			<hr>
+			<h2>Income Group Breakdown by Area</h2>
+			<p>Percent  /  Area</p>
+			<p>Low  ->  High</p>
+			<div id="area3"></div>
+			<hr>
+			<h2>Income Group Breakdown by Housing Type</h2>
+			<p>Percent  /  House Type/p>
+			<div id="area2"></div>
+		</div>
+	
 		<script src="jquery-3.3.1.min.js"></script>
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 		<script src="//d3js.org/d3-scale-chromatic.v0.3.min.js"></script>

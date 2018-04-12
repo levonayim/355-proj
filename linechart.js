@@ -141,6 +141,9 @@ function load() {
 		.attr('class', 'yAxis')
 		.call(yAxisPercent);
 
+	var flip = income.slice();
+	flip.reverse();
+
 	// legend
 	var stackedLegend = legendArea.append("g")
 		.attr("font-size", 10)
@@ -149,7 +152,7 @@ function load() {
 		// to get each individual label column, slice each element in the array 
 		// then to show it from highest to lowest, reverse it with the reverse function  
 		.selectAll("g")
-		.data(income)
+		.data(flip)
 		.enter()
 		.append("g")
 			.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
