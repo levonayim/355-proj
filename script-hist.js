@@ -38,15 +38,16 @@ var z = d3.scaleOrdinal()
 d3.csv("table.csv",
 	function(d, i, columns) {
 		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. +d[columns[i]] converts it to string array
-		for (var i = 4, n = columns.length; i < n; ++i)
+		for (var i = 4, n = columns.length; i < n; ++i) {
 			d[columns[i]] = +d[columns[i]];
+		}
 			return d;
 	}, 
     //if something wrong with dataset, output error
     function(error, data) {
 		if (error) { throw error; }
 
-		//Gets columns of under$10k all the way till $100k
+		// gets array of columns from under$10k to $100k+
 		var incomeCategory = data.columns.slice(4);
 
 		x.domain(data.map(function(d) { return d.province; }));
@@ -125,9 +126,10 @@ d3.csv("table.csv",
 	function(d, i, columns) {
 		// brings in the actual data/numbers from the columns
 		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. t is add through the loop for each column of data, +d[columns[i]] converts it to string array
-		for (i = 4, t = 0; i < columns.length; ++i)
+		for (i = 4, t = 0; i < columns.length; ++i) {
 			t += d[columns[i]] = +d[columns[i]];
 			d.total = t;
+		}
 			return d;	
 	},
 
