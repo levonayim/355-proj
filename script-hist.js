@@ -37,8 +37,8 @@ var z = d3.scaleOrdinal()
 //IMPORTING DATA
 d3.csv("table.csv",
 	function(d, i, columns) {
-		// Thomas - I have no idea how this for loop works
-		for (var i = 1, n = columns.length; i < n; ++i)
+		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. +d[columns[i]] converts it to string array
+		for (var i = 4, n = columns.length; i < n; ++i)
 			d[columns[i]] = +d[columns[i]];
 			return d;
 	}, 
@@ -123,7 +123,8 @@ d3.csv("table.csv",
 
 d3.csv("table.csv",
 	function(d, i, columns) {
-		// Thomas - I have no idea how this for loop works
+		// brings in the actual data/numbers from the columns
+		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. t is add through the loop for each column of data, +d[columns[i]] converts it to string array
 		for (i = 4, t = 0; i < columns.length; ++i)
 			t += d[columns[i]] = +d[columns[i]];
 			d.total = t;
