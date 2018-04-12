@@ -24,6 +24,13 @@ function iGToInt(iG) {
 	}   
 }
 
+// SETTINGS
+var mode = 'name'; // 'province', or 'name'
+var scale = '' // 'national', 'provincial', 'municipal'
+
+// if scale is larger than selections, only use selected items for that bin
+
+
 // BOUNDS
 var margin = {top: 30, right: 50, bottom: 50, left: 70},
 	outerWidth = 550,
@@ -43,6 +50,20 @@ var color = d3.scaleOrdinal(d3.schemeCategory20);   // set the colour scale
 
 // ADD CHART (cannot be named svg or else would over lap it)
 var lineChart = d3.select('#area1')
+	.append('svg')
+	.attr('width', outerWidth)
+	.attr('height', outerHeight)
+		.append('g')
+		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+var stackChart = d3.select('#area2')
+	.append('svg')
+	.attr('width', outerWidth)
+	.attr('height', outerHeight)
+		.append('g')
+		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+var rankChart = d3.select('#area3')
 	.append('svg')
 	.attr('width', outerWidth)
 	.attr('height', outerHeight)
@@ -78,7 +99,7 @@ d3.csv('dataset.csv', function(error, data) {
 	var dataNest = d3
 		// nest by name, then incomeGroup
 		.nest()
-		.key(function(d) { return d.name; })
+		.key(function(d) { return d[mode]; })
 		.key(function(d) { return d.incomeGroup; })
 		// for each subgroup
 		.rollup(function(d) {
@@ -151,7 +172,8 @@ d3.csv('dataset.csv', function(error, data) {
 	// define line
 	var line = d3.line() 
 		.x(function(d) { return xScale(iGToInt(d.key)); })
-		.y(function(d) { return yScale(d.value.percent); });
+		.y(function(d) { return yScale(d.value.percent); })
+		.curve(d3.curveMonotoneX);
 
 	// for each entry
 	dataNest.forEach(function(d,i) { 
@@ -170,6 +192,6 @@ d3.csv('dataset.csv', function(error, data) {
 		.data(data)
 		.append('title')
 		.text(function(d) {
-			return d.tenure + ' tenure ' + d.fraction + ' fraction' + d.income + ' income range' + d.GEO_NAME;
+			return d.tenure + ' tenure ' + d.fraction + ' fraction' + d.income + ' income range' + d.name;
 		});
 });
