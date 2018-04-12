@@ -1,3 +1,8 @@
+* {
+	box-sizing: border-box;
+}
+
+
 .container {
 	width: 1200px;
 	height: 700px;
@@ -9,8 +14,8 @@
 
 
 body {
-	max-width: 1600px;
-    margin: auto;
+	width: calc(75vw);
+	float: left;
 
 	font-family: "adelle-1","adelle-2", constantia, cambria, Georgia, serif;
 	font-size:9px;
