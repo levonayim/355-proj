@@ -37,8 +37,13 @@ var z = d3.scaleOrdinal()
 //IMPORTING DATA
 d3.csv("table.csv",
 	function(d, i, columns) {
+<<<<<<< HEAD
 		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. +d[columns[i]] converts it to workable integer
 		for (var i = 4, n = columns.length; i < n; ++i) {
+=======
+		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. +d[columns[i]] converts it to string array
+		for (var i = 4, n = columns.length; i < n; ++i)
+>>>>>>> parent of 3e11e25... Added comments to loops
 			d[columns[i]] = +d[columns[i]];
 		}
 			return d;
@@ -125,7 +130,7 @@ d3.csv("table.csv",
 d3.csv("table.csv",
 	function(d, i, columns) {
 		// brings in the actual data/numbers from the columns
-		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. t is add through the loop for each column of data, +d[columns[i]] converts it to workable integer
+		//start with 'Under $10,000' and since it's the 5th column, i = 4. t is the variable to count the total number of stacks it'll have. t is add through the loop for each column of data, +d[columns[i]] converts it to string array
 		for (i = 4, t = 0; i < columns.length; ++i)
 			t += d[columns[i]] = +d[columns[i]];
 			d.total = t;
@@ -147,10 +152,16 @@ d3.csv("table.csv",
 
 		x.domain(data.map(function(d) { return d.province; }));
 		y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
+<<<<<<< HEAD
 		z.domain(incomeCategory);
  
 		//for each data, create a rectangle based on it's numbers
 		stackedGroup.append("g")
+=======
+		z.domain(incomecategory);
+
+		stackedBarGroup.append("g")
+>>>>>>> parent of 3e11e25... Added comments to loops
 			.selectAll("g")
 			.data(d3.stack().keys(incomeCategory)(data))
 			.enter()
