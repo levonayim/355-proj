@@ -38,7 +38,7 @@ var selection = ['CAN'];
 
 // BOUNDS
 var margin = {top: 30, right: 50, bottom: 50, left: 70},
-	outerWidth = 550,
+	outerWidth = 2000,
 	outerHeight = 550,
 	innerWidth = outerWidth - margin.left - margin.right,
 	innerHeight = outerHeight - margin.top - margin.bottom;
@@ -49,13 +49,10 @@ var yScale = d3.scaleLinear().range([0, innerHeight]);
 var yScaleFlip = d3.scaleLinear().range([innerHeight, 0]);
 
 // AXIS
-var xAxis = d3.axisBottom(xScale).ticks(5);
-var yAxis = d3.axisLeft(yScale).ticks(5);
+var yAxisPercent = d3.axisLeft(yScaleFlip).ticks(10).tickFormat(function(d) { return d * 100 + '%'; });
 
-var color = d3.scaleOrdinal(d3.schemeCategory20);   // set the colour scale
 var colorScale = d3.scaleSequential(d3.interpolateRainbow)
     .domain([0, 10]);
-
 
 // ADD CHART (cannot be named svg or else would over lap it)
 var lineChart = d3.select('#area1')
@@ -79,40 +76,79 @@ var rankChart = d3.select('#area3')
 		.append('g')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+var legendArea = d3.select('#legendArea')
+	.append('svg')
+	.attr('width', outerWidth)
+	.attr('height', outerHeight);
+
 // Add the X Axis
 lineChart.append('g')
 	.attr('class', 'xAxis')
 	.attr('transform', 'translate(0,' + innerHeight + ')')
 	.call(d3.axisBottom(d3.scalePoint().domain(income).range([0, innerWidth])))
 	.selectAll("text")
-    .attr("y", 0)
-    .attr("x", 9)
-    .attr("dy", ".35em")
-    .attr("transform", "rotate(90)")
-    .style("text-anchor", "start");
+	.attr("transform", "rotate(7)")
+	.style("text-anchor", "start");
+
+// lineChart.append("text")             
+//       .attr("transform", "translate(" + (margin.left + innerWidth/2) + " ," + (margin.top + innerHeight) + ")")
+//       .style("text-anchor", "middle")
+//       .text("Income Group");
 
 stackChart.append('g')
 	.attr('class', 'xAxis')
 	.attr('transform', 'translate(0,' + innerHeight + ')')
-	.call(xAxis);
-
-rankChart.append('g')
-	.attr('class', 'xAxis')
-	.attr('transform', 'translate(0,' + innerHeight + ')')
-	.call(xAxis);
+	.call(d3.axisBottom(d3.scalePoint().domain(house).range([0, innerWidth])))
+	.selectAll("text")
+	.attr("transform", "rotate(7)")
+	.style("text-anchor", "start");
 
 // Add the Y Axis
 lineChart.append('g')
 	.attr('class', 'yAxis')
-	.call(yAxis);
+	.call(yAxisPercent);
+
+// lineChart.append("text")
+// 	.attr("y", margin.left)
+// 	.attr("x", outerHeight/2)
+// 	.style("text-anchor", "middle")
+// 	.attr("transform", "rotate(-90)")
+// 	.text("Percent"); 
 
 stackChart.append('g')
 	.attr('class', 'yAxis')
-	.call(yAxis);
+	.call(yAxisPercent);
 
 rankChart.append('g')
 	.attr('class', 'yAxis')
-	.call(yAxis);
+	.call(yAxisPercent);
+
+// legend
+var stackedLegend = legendArea.append("g")
+	.attr("font-size", 10)
+	.attr("font-family", "sans-serif")
+	.attr("text-anchor", "start")
+	// to get each individual label column, slice each element in the array 
+	// then to show it from highest to lowest, reverse it with the reverse function  
+	.selectAll("g")
+	.data(income)
+	.enter()
+	.append("g")
+		.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+//Legend: Colour - for each colour in z array, create a rectangle to hold colour in
+stackedLegend.append("rect")
+	.attr("x", 0)
+	.attr("width", 18)
+	.attr("height", 18)
+	.attr("fill", function (d) { return colorScale(nominalOrder(income, d)) });
+
+//Legend: Text - after each rectangle, add the column name it is ex. income under $10k
+stackedLegend.append("text")
+	.attr("x", 25)
+	.attr("y", 9.5)
+	.attr("dy", "0.32em")
+	.text(function(d) { return d; });
 
 // DATA
 d3.csv('dataset.csv', function(error, data) {
@@ -176,9 +212,9 @@ d3.csv('dataset.csv', function(error, data) {
 			d['ratio'] = d.total !== 0 ? (d.under30 / d.total) : 0;
 		});
 
-		// sort first level from high population to low
+		// sort first level from high ratio to low
 		dataNest.sort(function(x, y) {
-			return d3.descending(x.total, y.total);
+			return d3.ascending(x.ratio, y.ratio);
 		});
 
 		// sort incomes (so line draws in right order)
@@ -202,6 +238,10 @@ d3.csv('dataset.csv', function(error, data) {
 	var houseAllTotal = 0;
 	houseDataNest.forEach(function(d) {
 		houseAllTotal += d.total;
+	});
+
+	houseDataNest.sort(function(x, y) {
+		return d3.ascending(nominalOrder(house, x.key), nominalOrder(house, y.key));
 	});
 
 	// LINE CHART
@@ -250,15 +290,17 @@ d3.csv('dataset.csv', function(error, data) {
 			// class='line'
 			.attr('class', 'line')
 			// ??? add colors dynamically
-			.style('stroke', function() { return d.color = color(d.total); })
+			.style('stroke', function() { return d.color = colorScale(Math.random() * 10); })
 			// d='val, val, val'
-			.attr('d', line(d.values));
+			.attr('d', line(d.values))
+			.append('title')
+				.text(d[scale]);
 	});
 
 
 
 	// STACK CHART
-	xScale.domain([0, houseAllTotal]);
+	xScale.domain([0, houseDataNest.length]);
 	yScale.domain([0, 1]);
 	yScaleFlip.domain([0, 1]);
 
@@ -279,19 +321,22 @@ d3.csv('dataset.csv', function(error, data) {
 				.attr('class', 'segment')
 				.attr('x', xScale(xOffset))
 				.attr('y', yScaleFlip(yOffset))
-				.attr('width', xScale(d.total))
+				.attr('width', xScale(1) - 2)
 				.attr('height', yScale(totalRatio))
 				.style('fill', function() { return colorScale(nominalOrder(income, e.key)) });
 		});
 		// increment xOffset after (because of rect's left x-origin)
-		xOffset += d.total;
+		//xOffset += d.total;
+		xOffset += 1;
+
 	});
 
 	// RANK CHART
-	xScale.domain([0, allTotal]);
+	xScale.domain([0, dataNest.length]);
 	yScale.domain([0, 1]);
 	yScaleFlip.domain([0, 1]);
 
+	var xAxisRank = [];
 	var xOffset = 0;
 	dataNest.forEach(function(d, i) {
 		// for each group item
@@ -304,11 +349,11 @@ d3.csv('dataset.csv', function(error, data) {
 
 			// increment yOffset before (because of rect's top y-origin)
 			yOffset += totalRatio;
-			
+
 			rankChart.append('rect')
 				.attr('x', xScale(xOffset))
 				.attr('y', yScaleFlip(yOffset))
-				.attr('width', xScale(d.total))
+				.attr('width', xScale(1) - 2)
 				.attr('height', yScale(totalRatio))
 				.style('fill', function() { return colorScale(nominalOrder(income, e.key)) })
 				.attr('class', 'segment')
@@ -316,16 +361,17 @@ d3.csv('dataset.csv', function(error, data) {
 				// .on('mouseout', tip.hide);
 		});
 		// increment xOffset after (because of rect's left x-origin)
-		xOffset += d.total;
+		//xOffset += d.total;
+		xOffset += 1;
+
+		xAxisRank.push(d.key);
 	});
 
-	// OTHER
-
-	//HOVER OVER LINE. SHOW INFO. At the moment shows the 'highest' point of all the points for that city.. need to figure out how to show just the points.
-	lineChart.selectAll('path')
-		.data(data)
-		.append('title')
-		.text(function(d) {
-			return d.tenure + ' tenure ' + d.fraction + ' fraction' + d.income + ' income range' + d.name;
-		});
+	rankChart.append('g')
+		.attr('class', 'xAxis')
+		.attr('transform', 'translate(0,' + innerHeight + ')')
+		.call(d3.axisBottom(d3.scalePoint().domain(xAxisRank).range([0, innerWidth])))
+		.selectAll("text")
+		.attr("transform", "rotate(90)")
+		.style("text-anchor", "start");
 });

@@ -222,3 +222,24 @@ rect:hover {
   top: 100%;
   left: 0;
 }
+
+
+#lineChart {
+	width: 100%;
+	height: 500px;
+}
+
+#stackChart {
+	width: 100%;
+	height: 500px;
+}
+
+#rankChart {
+	width: 100%;
+	height: 500px;
+}
+
+#legendArea {
+	width: 200px;
+	height: 200px;
+}
