@@ -1,3 +1,5 @@
+// add jquery data to appended svg elements?
+
 function iGToInt(iG) {
 	if (iG == 'Under $10,000') {
 		return 0;
@@ -24,6 +26,29 @@ function iGToInt(iG) {
 	}   
 }
 
+function houseToInt(family) {
+	if (iG == 'One person household') {
+		return 0;
+	} else if (iG == 'Two-or-more person non-census-family household') {
+		return 1;
+	} else if (iG == 'One couple census family with other persons in the household') {
+		return 2;
+	} else if (iG == 'One couple census family without other persons in the household') {
+		return 3;
+	} else if (iG == 'One-census-family households with additional persons') {
+		return 4;
+	} else if (iG == 'One-census-family households without additional persons') {
+		return 5;
+	} else if (iG == 'One lone-parent census family with other persons in the household') {
+		return 6;
+	} else if (iG == 'One lone-parent census family without other persons in the household') {
+		return 7;
+	}
+}
+
+
+
+
 // SETTINGS
 var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
 
@@ -42,8 +67,7 @@ var margin = {top: 30, right: 50, bottom: 50, left: 70},
 // SCALE
 var xScale = d3.scaleLinear().range([0, innerWidth]);
 var yScale = d3.scaleLinear().range([0, innerHeight]);
-
-
+var yScaleFlip = d3.scaleLinear().range([innerHeight, 0]);
 
 // AXIS
 var xAxis = d3.axisBottom(xScale).ticks(5);
@@ -121,62 +145,68 @@ d3.csv('dataset.csv', function(error, data) {
 		d.tenureBand = +d.tenureBand || 0;
 	});
 
-	// MAKE NESTED DATA
-	var dataNest = d3
-		// nest by name, then incomeGroup
-		.nest()
-		.key(function(d) { return d[scale]; })
-		.key(function(d) { return d.incomeGroup; })
-		// for each subgroup
-		.rollup(function(d) {
-			// return a set of calculated values
-			var total = d3.sum(d, function(d) { 
-				var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
-				return total;
-			});
-			var under30 = d3.sum(d, function(d) {
-				var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
-				if (d.costIncomeRatio == 'Spending less than 30% of income on shelter costs') {
+	function createSelection(column, selection) {
+		// MAKE NESTED DATA
+		var dataNest = d3
+			// nest by name, then incomeGroup
+			.nest()
+			.key(function(d) { return d[column]; })
+			.key(function(d) { return d.incomeGroup; })
+			// for each subgroup
+			.rollup(function(d) {
+				// return a set of calculated values
+				var total = d3.sum(d, function(d) { 
+					var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
 					return total;
-				} else {
-					return 0;
-				}
+				});
+				var under30 = d3.sum(d, function(d) {
+					var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
+					if (d.costIncomeRatio == 'Spending less than 30% of income on shelter costs') {
+						return total;
+					} else {
+						return 0;
+					}
+				});
+				var ratio = total !== 0 ? (under30 / total) : 0;
+
+				// as an object
+				return {
+					'total': total,
+					'under30': under30,
+					'ratio': ratio,
+				};
+			})
+			// supply dataset
+			.entries(data);
+
+		
+		// create same variables for first level
+		dataNest.forEach(function(d) {
+			d['total'] = 0;
+			d['under30'] = 0;
+			d.values.forEach(function(e) {
+				d.total += e.value.total;
+				d.under30 += e.value.under30;
 			});
-			var ratio = total !== 0 ? (under30 / total) : 0;
-
-			// as an object
-			return {
-				'total': total,
-				'under30': under30,
-				'ratio': ratio,
-			};
-		})
-		// supply dataset
-		.entries(data);
-
-	
-	// create same variables for first level
-	dataNest.forEach(function(d) {
-		d['total'] = 0;
-		d['under30'] = 0;
-		d.values.forEach(function(e) {
-			d.total += e.value.total;
-			d.under30 += e.value.under30;
+			d['ratio'] = d.total !== 0 ? (d.under30 / d.total) : 0;
 		});
-		d['ratio'] = d.total !== 0 ? (d.under30 / d.total) : 0;
-	});
 
-	// sort first level from high population to low
-	dataNest.sort(function(x, y) {
-		return d3.descending(x.total, y.total);
-	});
-
-	// sort incomeGroups (so line draws in right order)
-	dataNest.forEach(function(d) {
-		d.values.sort(function(x, y) {
-			return d3.ascending(iGToInt(x.key), iGToInt(y.key));
+		// sort first level from high population to low
+		dataNest.sort(function(x, y) {
+			return d3.descending(x.total, y.total);
 		});
-	});	
+
+		// sort incomeGroups (so line draws in right order)
+		dataNest.forEach(function(d) {
+			d.values.sort(function(x, y) {
+				return d3.ascending(iGToInt(x.key), iGToInt(y.key));
+			});
+		});	
+
+		return dataNest;
+	}
+
+	var dataNest = createSelection(scale, selection);
 
 	// find all total
 	var allTotal = 0;
@@ -184,8 +214,21 @@ d3.csv('dataset.csv', function(error, data) {
 		allTotal += d.total;
 	});
 
+	console.log(dataNest);
 
-	// line chart
+	var houseDataNest = createSelection('houseType', selection);
+
+
+	// find all total
+	var houseAllTotal = 0;
+	houseDataNest.forEach(function(d) {
+		houseAllTotal += d.total;
+	});
+
+	console.log(houseDataNest);
+
+
+	// LINE CHART
 	// scale
 	// x, incomeGroup index, min to max
 	xScale.domain([
@@ -236,36 +279,79 @@ d3.csv('dataset.csv', function(error, data) {
 			.attr('d', line(d.values));
 	});
 
-	// stackChart.append(
+	// STACK CHART
+	xScale.domain([0, houseAllTotal]);
+	yScale.domain([0, 1]);
+	yScaleFlip.domain([0, 1]);
 
-	// rank chart
-	xScale.domain([0, allTotal]);
+	var xOffset = 0;
+	houseDataNest.forEach(function(d, i) { 
+		// for each group item
+		// reset yOffset
+		var yOffset = 0;
+		d.values.forEach(function (e, j) {
+			// for each income group
+			// get ratio for yRange
+			totalRatio = e.value.under30 / d.total;
 
-	var incomeGroupOffset = 0;
-	dataNest.forEach(function(d, i) { 
-		var incomeGroupTotal = 0;
-		d.values.forEach(function (d, i) {
-			incomeGroupTotal += d.value.total;
-		});
-
-		var offset = 0;
-		d.values.forEach(function (d, j) {
-			totalRatio = d.value.under30 / incomeGroupTotal;
+			// increment yOffset before (because of rect's top y-origin)
+			yOffset += totalRatio;
 			
-
-			rankChart.append('rect')
+			stackChart.append('rect')
 				.attr('class', 'segment')
-				.attr('x', xScale(incomeGroupOffset))
-				.attr('y', offset)
-				.attr('width', xScale(incomeGroupTotal))
+				.attr('x', xScale(xOffset))
+				.attr('y', yScaleFlip(yOffset))
+				.attr('width', xScale(d.total))
 				.attr('height', yScale(totalRatio))
-				.style('fill', function() { return colorScale(iGToInt(d.key)) });
-
-			offset += yScale(totalRatio);
-			//console.log(offset);
+				.style('fill', function() { return colorScale(iGToInt(e.key)) });
 		});
-		incomeGroupOffset += incomeGroupTotal;
+		// increment xOffset after (because of rect's left x-origin)
+		xOffset += d.total;
 	});
+
+	// RANK CHART
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return 'tip';
+  });
+
+
+
+	xScale.domain([0, allTotal]);
+	yScale.domain([0, 1]);
+	yScaleFlip.domain([0, 1]);
+
+	var xOffset = 0;
+	dataNest.forEach(function(d, i) {
+		// for each group item
+		// reset yOffset
+		var yOffset = 0;
+		d.values.forEach(function (e, j) {
+			// for each income group
+			// get ratio for yRange
+			totalRatio = e.value.under30 / d.total;
+
+			// increment yOffset before (because of rect's top y-origin)
+			yOffset += totalRatio;
+			
+			rankChart.append('rect')
+				.attr('x', xScale(xOffset))
+				.attr('y', yScaleFlip(yOffset))
+				.attr('width', xScale(d.total))
+				.attr('height', yScale(totalRatio))
+				.style('fill', function() { return colorScale(iGToInt(e.key)) })
+				.attr('class', 'segment')
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide)
+		});
+		// increment xOffset after (because of rect's left x-origin)
+		xOffset += d.total;
+	});
+
+	rankChart.call(tip);
 
 	// OTHER
 
