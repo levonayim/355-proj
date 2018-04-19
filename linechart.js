@@ -55,9 +55,9 @@ function load() {
 	$('svg').remove();
 	$('g').remove();
 
-	var margin = {top: 50, right: 50, bottom: 50, left: 50},
+	var margin = {top: 10, right: 50, bottom: 50, left: 30},
 		outerWidth = 0.75 * $(window).width(),
-		outerHeight = 0.75 * $(window).height(),
+		outerHeight = 0.9 * $(window).height(),
 		innerWidth = outerWidth - margin.left - margin.right,
 		innerHeight = outerHeight - margin.top - margin.bottom;
 
@@ -106,6 +106,7 @@ function load() {
 		.call(d3.axisBottom(d3.scalePoint().domain(income).range([0, innerWidth])))
 		.selectAll("text")
 		.attr("transform", "rotate(7)")
+		.attr("font-size", 8)
 		.style("text-anchor", "start");
 
 	// lineChart.append("text")             
@@ -119,6 +120,7 @@ function load() {
 		.call(d3.axisBottom(d3.scalePoint().domain(house).range([0, innerWidth])))
 		.selectAll("text")
 		.attr("transform", "rotate(7)")
+		.attr("font-size", 9)
 		.style("text-anchor", "start");
 
 	// Add the Y Axis
@@ -135,6 +137,7 @@ function load() {
 
 	stackChart.append('g')
 		.attr('class', 'yAxis')
+		.attr("font-size", 8)
 		.call(yAxisPercent);
 
 	rankChart.append('g')
@@ -315,6 +318,12 @@ function load() {
 				.style('stroke', function() { return d.color = colorScale(Math.random() * 10); })
 				// d='val, val, val'
 				.attr('d', line(d.values))
+
+				//SUPPOSED TO SHOW CITY NAME WHEN HOVER LINE. Worked on assn5.. not anymore
+				// .append('title')
+				// .text(function(d) {
+				// 	return 'city name' + d.GEO_NAME;
+				// };
 		});
 
 
@@ -393,6 +402,8 @@ function load() {
 			.call(d3.axisBottom(d3.scalePoint().domain(xAxisRank).range([0, innerWidth])))
 			.selectAll("text")
 			.attr("transform", "rotate(90)")
+			.attr("font-size", 8)
 			.style("text-anchor", "start");
 	});
+
 }

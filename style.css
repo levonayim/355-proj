@@ -10,7 +10,10 @@
 	padding: 0 50px;
 }
 
-
+#area3>text{
+	font-size: 8px;
+	margin-left: 3px;
+}
 
 
 body {
@@ -70,8 +73,9 @@ svg {
 
 #side {
 	position: fixed;
-	width: calc(25% - 2*var(--gutter));
-	right: var(--gutter);
+	width: 15%;
+	right: 15px;
+	top: 15%;
 }
 
 #side button {
