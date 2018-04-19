@@ -318,6 +318,12 @@ function load() {
 				.style('stroke', function() { return d.color = colorScale(Math.random() * 10); })
 				// d='val, val, val'
 				.attr('d', line(d.values))
+
+				//SUPPOSED TO SHOW CITY NAME WHEN HOVER LINE. Worked on assn5.. not anymore
+				// .append('title')
+				// .text(function(d) {
+				// 	return 'city name' + d.GEO_NAME;
+				// };
 		});
 
 
@@ -399,4 +405,5 @@ function load() {
 			.attr("font-size", 8)
 			.style("text-anchor", "start");
 	});
+
 }
