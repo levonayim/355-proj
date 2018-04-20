@@ -14,6 +14,22 @@ var income = [
 	'$100,000 and over',
 ];
 
+var incomeEdit = [
+	'Under $10k',
+	'$10k to $20k',
+	'$20k to $30k',
+	'$30k to $40k',
+	'$40k to $50k',
+	'$50k to $60k',
+	'$60k to $70k',
+	'$70k to $80k',
+	'$80k to $90k',
+	'$90k to $100k',
+	'Over $100k',
+];
+
+var incomeRemove = [];
+
 var house = [
 	'One person household',
 	'Two-or-more person non-census-family household',
@@ -23,6 +39,18 @@ var house = [
 	'One-census-family households without additional persons',
 	'One lone-parent census family with other persons in the household',
 	'One lone-parent census family without other persons in the household',
+];
+
+var houseEdit = [
+	'1 Person',
+	'2+ People, Non-Family',
+	'Couple w/ Others',
+	'Couple',
+	'Family w/ Others',
+	'Family',
+	'Single Parent w/ Others',
+	'Single Parent',
+	'',
 ];
 
 function nominalOrder(group, input) {
@@ -40,9 +68,31 @@ $(document).on('click', '#provincial', function() {
 });
 $(document).on('click', '#municipal', function() {
 	scale = 'name';
+
 	load();
 });
 
+$(document).on('click', '.categorySelect', function() {
+	var text = $(this).text();
+	console.log('text is: ' + text);
+	var index = incomeEdit.indexOf(text);
+	console.log('index is: ' + index);
+	text = income[index];
+	console.log('new text is: ' + text);
+
+	if (incomeRemove.indexOf(text) === -1) {
+		// add
+		incomeRemove.push(text);
+		$(this).removeClass('highlight');
+	} else {
+		// remove
+		incomeRemove.splice(incomeRemove.indexOf(text), 1);
+		$(this).addClass('highlight');
+	}
+	console.log('array is: ' + incomeRemove);
+
+	load();
+});
 
 var scale = 'name' // 'country', 'province', 'name', 'national', 'provincial', 'municipal'
 
@@ -55,21 +105,28 @@ function load() {
 	$('svg').remove();
 	$('g').remove();
 
-	var margin = {top: 10, right: 50, bottom: 50, left: 30},
+	var margin = {top: 150, right: 50, bottom: 150, left: 50},
 		outerWidth = 0.75 * $(window).width(),
 		outerHeight = 0.9 * $(window).height(),
 		innerWidth = outerWidth - margin.left - margin.right,
 		innerHeight = outerHeight - margin.top - margin.bottom;
+
+		rankOuterWidth = outerWidth*3;	
+		rankOuterHeight = outerWidth;
+		rankInnerWidth = rankOuterWidth - margin.left - margin.right,
+		rankInnerHeight = rankOuterHeight - margin.top - margin.bottom;	
 
 	// SCALE
 	var xScale = d3.scaleLinear().range([0, innerWidth]);
 	var yScale = d3.scaleLinear().range([0, innerHeight]);
 	var yScaleFlip = d3.scaleLinear().range([innerHeight, 0]);
 
-	// AXIS
-	var yAxisPercent = d3.axisLeft(yScaleFlip).ticks(10).tickFormat(function(d) { return d * 100 + '%'; });
+	var rankXScale = d3.scaleLinear().range([0, rankInnerWidth]);
+	var rankYScale = d3.scaleLinear().range([0, rankInnerHeight]);
+	var rankYScaleFlip = d3.scaleLinear().range([rankInnerHeight, 0]);
 
-	var colorScale = d3.scaleSequential(d3.interpolateRainbow)
+
+	var colorScale = d3.scaleSequential(d3.interpolateWarm)
 	    .domain([0, 10]);
 
 	// ADD CHART (cannot be named svg or else would over lap it)
@@ -89,8 +146,8 @@ function load() {
 
 	var rankChart = d3.select('#area3')
 		.append('svg')
-		.attr('width', outerWidth)
-		.attr('height', outerHeight)
+		.attr('width', rankOuterWidth)
+		.attr('height', rankOuterHeight)
 			.append('g')
 			.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -103,11 +160,11 @@ function load() {
 	lineChart.append('g')
 		.attr('class', 'xAxis')
 		.attr('transform', 'translate(0,' + innerHeight + ')')
-		.call(d3.axisBottom(d3.scalePoint().domain(income).range([0, innerWidth])))
+		.call(d3.axisBottom(d3.scalePoint().domain(incomeEdit).range([0, innerWidth])))
 		.selectAll("text")
-		.attr("transform", "rotate(7)")
-		.attr("font-size", 8)
-		.style("text-anchor", "start");
+		.attr("font-size", 12)
+		.style("text-anchor", "middle")
+		.attr('class', 'categorySelect highlight');
 
 	// lineChart.append("text")             
 	//       .attr("transform", "translate(" + (margin.left + innerWidth/2) + " ," + (margin.top + innerHeight) + ")")
@@ -117,16 +174,15 @@ function load() {
 	stackChart.append('g')
 		.attr('class', 'xAxis')
 		.attr('transform', 'translate(0,' + innerHeight + ')')
-		.call(d3.axisBottom(d3.scalePoint().domain(house).range([0, innerWidth])))
+		.call(d3.axisBottom(d3.scalePoint().domain(houseEdit).range([0, innerWidth])))
 		.selectAll("text")
-		.attr("transform", "rotate(7)")
-		.attr("font-size", 9)
+		.attr("font-size", 12)
 		.style("text-anchor", "start");
 
 	// Add the Y Axis
 	lineChart.append('g')
 		.attr('class', 'yAxis')
-		.call(yAxisPercent);
+		.call(d3.axisLeft(yScaleFlip).ticks(10).tickFormat(function(d) { return d * 100 + '%'; }));
 
 	// lineChart.append("text")
 	// 	.attr("y", margin.left)
@@ -137,19 +193,19 @@ function load() {
 
 	stackChart.append('g')
 		.attr('class', 'yAxis')
-		.attr("font-size", 8)
-		.call(yAxisPercent);
+		.attr("font-size", 12)
+		.call(d3.axisLeft(yScaleFlip).ticks(10).tickFormat(function(d) { return d * 50 + '%'; }));
 
 	rankChart.append('g')
 		.attr('class', 'yAxis')
-		.call(yAxisPercent);
+		.call(d3.axisLeft(rankYScaleFlip).ticks(7).tickFormat(function(d) { return d * 35 + '%'; }));
 
 	var flip = income.slice();
 	flip.reverse();
 
 	// legend
 	var stackedLegend = legendArea.append("g")
-		.attr("font-size", 10)
+		.attr("font-size", 12)
 		.attr("font-family", "sans-serif")
 		.attr("text-anchor", "start")
 		// to get each individual label column, slice each element in the array 
@@ -205,20 +261,20 @@ function load() {
 						var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
 						return total;
 					});
-					var under30 = d3.sum(d, function(d) {
+					var over30 = d3.sum(d, function(d) {
 						var total = d3.sum([d.tenureOwner, d.tenureRenter, d.tenureBand]);
-						if (d.costIncomeRatio == 'Spending less than 30% of income on shelter costs') {
+						if (d.costIncomeRatio == 'Spending 30% or more of income on shelter costs') {
 							return total;
 						} else {
 							return 0;
 						}
 					});
-					var ratio = total !== 0 ? (under30 / total) : 0;
+					var ratio = total !== 0 ? (over30 / total) : 0;
 
 					// as an object
 					return {
 						'total': total,
-						'under30': under30,
+						'over30': over30,
 						'ratio': ratio,
 					};
 				})
@@ -229,17 +285,17 @@ function load() {
 			// create same variables for first level
 			dataNest.forEach(function(d) {
 				d['total'] = 0;
-				d['under30'] = 0;
+				d['over30'] = 0;
 				d.values.forEach(function(e) {
 					d.total += e.value.total;
-					d.under30 += e.value.under30;
+					d.over30 += e.value.over30;
 				});
-				d['ratio'] = d.total !== 0 ? (d.under30 / d.total) : 0;
+				d['ratio'] = d.total !== 0 ? (d.over30 / d.total) : 0;
 			});
 
 			// sort first level from high ratio to low
 			dataNest.sort(function(x, y) {
-				return d3.ascending(x.ratio, y.ratio);
+				return d3.descending(x.ratio, y.ratio);
 			});
 
 			// sort incomes (so line draws in right order)
@@ -257,6 +313,8 @@ function load() {
 		dataNest.forEach(function(d) {
 			allTotal += d.total;
 		});
+
+		console.log(dataNest);
 
 
 		var houseDataNest = createSelection('houseType', selection);
@@ -315,7 +373,7 @@ function load() {
 				// class='line'
 				.attr('class', 'line')
 				// ??? add colors dynamically
-				.style('stroke', function() { return d.color = colorScale(Math.random() * 10); })
+				.style('stroke', function() { return d.color = '#808080'; })
 				// d='val, val, val'
 				.attr('d', line(d.values))
 
@@ -330,8 +388,8 @@ function load() {
 
 		// STACK CHART
 		xScale.domain([0, houseDataNest.length]);
-		yScale.domain([0, 1]);
-		yScaleFlip.domain([0, 1]);
+		yScale.domain([0, .5]);
+		yScaleFlip.domain([0, .5]);
 
 		var xOffset = 0;
 		houseDataNest.forEach(function(d, i) { 
@@ -339,9 +397,10 @@ function load() {
 			// reset yOffset
 			var yOffset = 0;
 			d.values.forEach(function (e, j) {
+
 				// for each income group
 				// get ratio for yRange
-				totalRatio = e.value.under30 / d.total;
+				totalRatio = e.value.over30 / d.total;
 
 				// increment yOffset before (because of rect's top y-origin)
 				yOffset += totalRatio;
@@ -361,9 +420,9 @@ function load() {
 		});
 
 		// RANK CHART
-		xScale.domain([0, dataNest.length]);
-		yScale.domain([0, 1]);
-		yScaleFlip.domain([0, 1]);
+		rankXScale.domain([0, dataNest.length]);
+		rankYScale.domain([0, .35]);
+		rankYScaleFlip.domain([0, .35]);
 
 		var xAxisRank = [];
 		var xOffset = 0;
@@ -374,21 +433,22 @@ function load() {
 			d.values.forEach(function (e, j) {
 				// for each income group
 				// get ratio for yRange
-				totalRatio = e.value.under30 / d.total;
+				totalRatio = e.value.over30 / d.total;
 
 				// increment yOffset before (because of rect's top y-origin)
 				yOffset += totalRatio;
 
 				rankChart.append('rect')
-					.attr('x', xScale(xOffset))
-					.attr('y', yScaleFlip(yOffset))
-					.attr('width', xScale(1) - 2)
-					.attr('height', yScale(totalRatio))
+					.attr('x', rankXScale(xOffset))
+					.attr('y', rankYScaleFlip(yOffset))
+					.attr('width', rankXScale(1) - 2)
+					.attr('height', rankYScale(totalRatio))
 					.style('fill', function() { return colorScale(nominalOrder(income, e.key)) })
 					.attr('class', 'segment')
 					// .on('mouseover', tip.show)
 					// .on('mouseout', tip.hide);
 			});
+
 			// increment xOffset after (because of rect's left x-origin)
 			//xOffset += d.total;
 			xOffset += 1;
@@ -398,12 +458,12 @@ function load() {
 
 		rankChart.append('g')
 			.attr('class', 'xAxis')
-			.attr('transform', 'translate(0,' + innerHeight + ')')
-			.call(d3.axisBottom(d3.scalePoint().domain(xAxisRank).range([0, innerWidth])))
+			.attr('transform', 'translate(0,' + rankInnerHeight + ')')
+			.call(d3.axisBottom(d3.scalePoint().domain(xAxisRank).range([0, rankInnerWidth])))
 			.selectAll("text")
-			.attr("transform", "rotate(90)")
-			.attr("font-size", 8)
-			.style("text-anchor", "start");
+			.attr("transform", "rotate(-90)")
+			.attr("font-size", 12)
+			.style("text-anchor", "end");
 	});
 
 }

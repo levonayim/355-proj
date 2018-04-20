@@ -71,6 +71,11 @@ svg {
 	
 }
 
+#area3 {
+	transform-origin: 0% 0%;
+	transform: translateX(75vw) rotate(90deg);
+}
+
 #side {
 	position: fixed;
 	width: 15%;
@@ -84,19 +89,36 @@ svg {
 	margin-bottom: 10px;
 	width: 100%;
 
-	border: none;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #808080;
+	background-color: transparent;
+}
+
+#side button:hover {
+	background-color: #c0c0c0;
+}
+
+.categorySelect {
+	stroke: transparent;
+	fill: #ededed;
+}
+
+.categorySelect:hover {
+	stroke: #f7ba51;
+}
+
+.highlight {
+	fill: #808080;
 }
 
 #national {
-	background-color: #6E40AA;
 }
 
 #provincial {
-	background-color: #1DDFA3;
 }
 
 #municipal {
-	background-color: #FF7847;
 }
 
 path {
@@ -132,7 +154,7 @@ g.national path {
 .axis path,
 .axis line {
 	fill: none;
-	stroke: #BCBCBC;
+	stroke: #F4774A;
 	stroke-width: 1;
 	shape-rendering: crispEdges;
 }
@@ -142,12 +164,12 @@ g.national path {
 }
 
 .line:hover, .pathBase:hover {
-	stroke: black;
+	stroke: #F4774A;
 	opacity: 1;
 }
 
 .pathBase {
-	stroke: #888;
+	stroke: #F4774A;
 	opacity: 0.2;
 }
 
